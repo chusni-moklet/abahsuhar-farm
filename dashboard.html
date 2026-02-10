@@ -44,7 +44,7 @@
 </div>
 
 <script>
-const URL = "https://script.google.com/macros/s/AKfycbyP2sIYSWEuYipv_hqMru_pIaoYJ9bG_RoZfCMormsy4NJp0ZgVDJs-HOxGbN91Q5FD9Q/exec";
+const URL = "https://script.google.com/macros/s/AKfycbwTJsrh2DhW2IzBRwfDvbf6XTKwNPaqrxSRK1z6ZaO9NgY8nWGI1cGvRymwgNa0p2Hz_Q/exec";
 let raw, prodChart, finChart, labaChart;
 
 // navbar
@@ -52,11 +52,12 @@ fetch("navbar.html").then(r=>r.text()).then(t=>nav.innerHTML=t);
 
 // load data
 fetch(URL).then(r=>r.json()).then(d=>{
+  console.log("Data dari server:", d);
   raw = d;
   render(d);
 }).catch(err=>{
   console.error("Error loading data:", err);
-  cards.innerHTML = '<div class="col-span-2 text-center text-red-600">Gagal memuat data. Pastikan URL Google Apps Script sudah benar.</div>';
+  cards.innerHTML = '<div class="col-span-2 lg:col-span-3 text-center text-red-600 p-4">Gagal memuat data. Pastikan URL Google Apps Script sudah benar.<br><small>Buka Console (F12) untuk detail error.</small></div>';
 });
 
 // filter
@@ -88,9 +89,12 @@ function resetFilter(){
 
 // render
 function render(d){
+  console.log("Rendering data:", d);
+  
   // Cek apakah data ada
   if(!d || !d.telur || !d.tetas || !d.jual || !d.keluar){
-    cards.innerHTML = '<div class="col-span-2 text-center text-gray-600">Tidak ada data untuk ditampilkan</div>';
+    console.error("Data tidak lengkap:", d);
+    cards.innerHTML = '<div class="col-span-2 lg:col-span-3 text-center text-gray-600 p-4">Tidak ada data untuk ditampilkan.<br><small>Pastikan sheet TELUR_MASUK, TETASAN, PENJUALAN, dan PENGELUARAN sudah ada di spreadsheet.</small></div>';
     return;
   }
 
@@ -100,11 +104,13 @@ function render(d){
   const pemasukan = sum(d.jual,4);
   const pengeluaran = sum(d.keluar,2);
   const laba = pemasukan - pengeluaran;
+  
+  console.log("Summary:", {telur, menetas, terjual, pemasukan, pengeluaran, laba});
 
   cards.innerHTML = `
     <div class="card">🥚 Telur Masuk<br><span class="text-2xl">${telur}</span></div>
-    <div class="card">🐣 Menetas<br><span class="text-2xl">${menetas}</span></div>
-    <div class="card">🛒 Terjual<br><span class="text-2xl">${terjual}</span></div>
+    <div class="card">� Menetas<br><span class="text-2xl">${menetas}</span></div>
+    <div class="card">� Terjual<br><span class="text-2xl">${terjual}</span></div>
     <div class="card">💰 Masuk<br><span class="text-xl">Rp ${pemasukan.toLocaleString('id-ID')}</span></div>
     <div class="card">💸 Keluar<br><span class="text-xl">Rp ${pengeluaran.toLocaleString('id-ID')}</span></div>
     <div class="card bg-green-600 text-white">📈 Laba<br><span class="text-xl">Rp ${laba.toLocaleString('id-ID')}</span></div>
