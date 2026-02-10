@@ -15,15 +15,25 @@
 <h1 class="text-xl md:text-2xl font-bold mb-4">📊 Dashboard Ternak</h1>
 
 <!-- FILTER -->
-<div class="bg-white p-3 md:p-4 rounded-xl shadow mb-4 flex flex-col sm:flex-row gap-2 md:gap-4">
-  <input type="date" id="start" class="border p-2 rounded w-full text-sm md:text-base" placeholder="Tanggal Mulai">
-  <input type="date" id="end" class="border p-2 rounded w-full text-sm md:text-base" placeholder="Tanggal Akhir">
-  <button onclick="applyFilter()" class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded text-sm md:text-base whitespace-nowrap">
-    Filter
-  </button>
-  <button onclick="resetFilter()" class="bg-gray-500 hover:bg-gray-600 text-white px-4 py-2 rounded text-sm md:text-base whitespace-nowrap">
-    Reset
-  </button>
+<div class="bg-white p-3 md:p-4 rounded-xl shadow mb-4">
+  <div class="flex flex-col sm:flex-row gap-2 md:gap-4 mb-2">
+    <input type="date" id="start" class="border p-2 rounded w-full text-sm md:text-base" placeholder="Tanggal Mulai">
+    <input type="date" id="end" class="border p-2 rounded w-full text-sm md:text-base" placeholder="Tanggal Akhir">
+    <select id="jenisFilter" class="border p-2 rounded w-full text-sm md:text-base">
+      <option value="">Semua Jenis</option>
+      <option>Mardi ORI</option>
+      <option>Bangkodi</option>
+      <option>Bangkok x Aseel</option>
+    </select>
+  </div>
+  <div class="flex gap-2">
+    <button onclick="applyFilter()" class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded text-sm md:text-base flex-1">
+      Filter
+    </button>
+    <button onclick="resetFilter()" class="bg-gray-500 hover:bg-gray-600 text-white px-4 py-2 rounded text-sm md:text-base flex-1">
+      Reset
+    </button>
+  </div>
 </div>
 
 <!-- CARD -->
@@ -69,12 +79,22 @@ function applyFilter(){
   
   const s = start.value ? new Date(start.value) : null;
   const e = end.value ? new Date(end.value) : null;
+  const jenis = jenisFilter.value;
 
   const f = {};
   for(let k in raw){
     f[k] = raw[k].filter(r=>{
       const t = new Date(r[0]);
-      return (!s || t>=s) && (!e || t<=e);
+      const dateMatch = (!s || t>=s) && (!e || t<=e);
+      
+      // Filter jenis ayam
+      // TELUR_MASUK: index 2, TETASAN: index 2, PENJUALAN: index 2
+      let jenisMatch = true;
+      if(jenis && (k === 'telur' || k === 'tetas' || k === 'jual')){
+        jenisMatch = r[2] === jenis;
+      }
+      
+      return dateMatch && jenisMatch;
     });
   }
   render(f);
@@ -84,6 +104,7 @@ function applyFilter(){
 function resetFilter(){
   start.value = '';
   end.value = '';
+  jenisFilter.value = '';
   if(raw) render(raw);
 }
 
