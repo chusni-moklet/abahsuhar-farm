@@ -1,30 +1,53 @@
 # Aplikasi Dashboard Ternak
 
 Aplikasi web untuk mengelola data peternakan ayam dengan fitur:
+- Login authentication
 - Input telur masuk
 - Input hasil tetasan
 - Input penjualan
 - Input pengeluaran
 - Dashboard dengan grafik dan filter
 
+## Kredensial Login:
+
+**Username:** `abah-suhar57`  
+**Password:** `Kandangan2026`
+
 ## File-file:
 
+- `login.html` - Halaman login
+- `auth.js` - Script proteksi autentikasi
 - `index.html` - Halaman input telur masuk
 - `tetasan.html` - Halaman input hasil tetasan
 - `penjualan.html` - Halaman input penjualan
 - `pengeluaran.html` - Halaman input pengeluaran
 - `dashboard.html` - Halaman dashboard dengan grafik
-- `navbar.html` - Navigasi menu
+- `navbar.html` - Navigasi menu dengan tombol logout
 - `google-apps-script.js` - Script untuk Google Apps Script
 - `SETUP-GOOGLE-APPS-SCRIPT.md` - Panduan setup lengkap
 
 ## Cara Setup:
 
-1. Baca file `SETUP-GOOGLE-APPS-SCRIPT.md` untuk panduan lengkap
-2. Setup Google Spreadsheet dengan sheet yang diperlukan
-3. Deploy Google Apps Script
-4. Update URL di semua file HTML
-5. Buka aplikasi di browser
+1. Buka `login.html` di browser sebagai halaman utama
+2. Login dengan kredensial di atas
+3. Baca file `SETUP-GOOGLE-APPS-SCRIPT.md` untuk panduan lengkap
+4. Setup Google Spreadsheet dengan sheet yang diperlukan
+5. Deploy Google Apps Script
+6. Update URL di semua file HTML
+
+## Fitur Login:
+
+### Keamanan
+- Session-based authentication menggunakan sessionStorage
+- Auto-redirect ke login jika belum login
+- Auto-redirect ke dashboard jika sudah login
+- Tombol logout di navbar
+
+### Proteksi Halaman
+Semua halaman (kecuali login.html) dilindungi dengan auth.js yang akan:
+- Cek status login saat halaman dimuat
+- Redirect ke login.html jika belum login
+- Menyimpan session selama browser terbuka
 
 ## Troubleshooting Dashboard Tidak Muncul:
 
