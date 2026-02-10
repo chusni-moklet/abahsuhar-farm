@@ -58,10 +58,10 @@
 </div>
 
 <script>
-const CREDENTIALS = {
-  username: 'abah-suhar57',
-  password: 'Kandangan2026'
-};
+const CREDENTIALS = [
+  { username: 'abah-suhar57', password: 'Kandangan2026' },
+  { username: 'chusni88', password: 'Malang2015' }
+];
 
 // Cek apakah sudah login
 if(sessionStorage.getItem('isLoggedIn') === 'true'){
@@ -81,7 +81,12 @@ loginForm.onsubmit = (e) => {
   
   // Simulasi delay untuk keamanan
   setTimeout(() => {
-    if(user === CREDENTIALS.username && pass === CREDENTIALS.password){
+    // Cari user yang cocok
+    const validUser = CREDENTIALS.find(
+      cred => cred.username === user && cred.password === pass
+    );
+    
+    if(validUser){
       // Login berhasil
       sessionStorage.setItem('isLoggedIn', 'true');
       sessionStorage.setItem('username', user);

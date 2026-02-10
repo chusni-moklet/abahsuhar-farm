@@ -10,8 +10,13 @@ Aplikasi web untuk mengelola data peternakan ayam dengan fitur:
 
 ## Kredensial Login:
 
-**Username:** `abah-suhar57`  
-**Password:** `Kandangan2026`
+**Akun 1:**  
+Username: `abah-suhar57`  
+Password: `Kandangan2026`
+
+**Akun 2:**  
+Username: `chusni88`  
+Password: `Malang2015`
 
 ## File-file:
 
