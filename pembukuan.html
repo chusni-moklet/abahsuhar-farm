@@ -1,0 +1,215 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Pembukuan</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<script src="auth.js"></script>
+</head>
+<body class="bg-gray-100 p-3 md:p-6 min-h-screen">
+
+<div id="nav"></div>
+
+<div class="max-w-6xl mx-auto">
+  <h1 class="text-xl md:text-2xl font-bold mb-4">📒 Pembukuan Keuangan</h1>
+
+  <!-- FILTER -->
+  <div class="bg-white p-3 md:p-4 rounded-xl shadow mb-4">
+    <div class="flex flex-col sm:flex-row gap-2 md:gap-4 mb-2">
+      <input type="date" id="start" class="border p-2 rounded w-full text-sm md:text-base" placeholder="Tanggal Mulai">
+      <input type="date" id="end" class="border p-2 rounded w-full text-sm md:text-base" placeholder="Tanggal Akhir">
+      <select id="jenisFilter" class="border p-2 rounded w-full text-sm md:text-base">
+        <option value="">Semua Jenis</option>
+        <option>Mardi ORI</option>
+        <option>Bangkodi</option>
+        <option>Bangkok x Aseel</option>
+      </select>
+    </div>
+    <div class="flex gap-2">
+      <button onclick="applyFilter()" class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded text-sm md:text-base flex-1">
+        Filter
+      </button>
+      <button onclick="resetFilter()" class="bg-gray-500 hover:bg-gray-600 text-white px-4 py-2 rounded text-sm md:text-base flex-1">
+        Reset
+      </button>
+    </div>
+  </div>
+
+  <!-- SUMMARY CARDS -->
+  <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
+    <div class="bg-green-600 text-white p-4 rounded-xl shadow">
+      <div class="text-sm opacity-90">💰 Total Pemasukan</div>
+      <div class="text-2xl font-bold" id="totalMasuk">Rp 0</div>
+    </div>
+    <div class="bg-red-600 text-white p-4 rounded-xl shadow">
+      <div class="text-sm opacity-90">💸 Total Pengeluaran</div>
+      <div class="text-2xl font-bold" id="totalKeluar">Rp 0</div>
+    </div>
+    <div class="bg-blue-600 text-white p-4 rounded-xl shadow">
+      <div class="text-sm opacity-90">📊 Saldo</div>
+      <div class="text-2xl font-bold" id="saldo">Rp 0</div>
+    </div>
+  </div>
+
+  <!-- TABEL TRANSAKSI -->
+  <div class="bg-white rounded-xl shadow overflow-hidden">
+    <div class="overflow-x-auto">
+      <table class="w-full text-sm">
+        <thead class="bg-green-700 text-white">
+          <tr>
+            <th class="p-3 text-left">Tanggal</th>
+            <th class="p-3 text-left">Jenis</th>
+            <th class="p-3 text-left">Keterangan</th>
+            <th class="p-3 text-right">Pemasukan</th>
+            <th class="p-3 text-right">Pengeluaran</th>
+            <th class="p-3 text-right">Saldo</th>
+          </tr>
+        </thead>
+        <tbody id="tableBody">
+          <tr>
+            <td colspan="6" class="p-4 text-center text-gray-500">Memuat data...</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+<script>
+const URL = "https://script.google.com/macros/s/AKfycbyP2sIYSWEuYipv_hqMru_pIaoYJ9bG_RoZfCMormsy4NJp0ZgVDJs-HOxGbN91Q5FD9Q/exec";
+let rawData = null;
+
+// Load navbar
+fetch("navbar.html").then(r=>r.text()).then(t=>nav.innerHTML=t);
+
+// Load data
+fetch(URL).then(r=>r.json()).then(d=>{
+  console.log("Data loaded:", d);
+  rawData = d;
+  renderTable(d);
+}).catch(err=>{
+  console.error("Error:", err);
+  tableBody.innerHTML = '<tr><td colspan="6" class="p-4 text-center text-red-600">Gagal memuat data</td></tr>';
+});
+
+function renderTable(data){
+  if(!data || !data.jual || !data.keluar){
+    tableBody.innerHTML = '<tr><td colspan="6" class="p-4 text-center text-gray-500">Tidak ada data</td></tr>';
+    return;
+  }
+
+  // Gabungkan data penjualan dan pengeluaran
+  let transactions = [];
+  
+  // Penjualan (pemasukan)
+  data.jual.forEach(row => {
+    transactions.push({
+      tanggal: new Date(row[0]),
+      jenis: row[2] || '-',
+      keterangan: `Penjualan ${row[1]} ekor ${row[3] || 'DOC'}`,
+      pemasukan: parseFloat(row[4]) || 0,
+      pengeluaran: 0,
+      type: 'masuk'
+    });
+  });
+  
+  // Pengeluaran
+  data.keluar.forEach(row => {
+    transactions.push({
+      tanggal: new Date(row[0]),
+      jenis: '-',
+      keterangan: row[1] || '-',
+      pemasukan: 0,
+      pengeluaran: parseFloat(row[2]) || 0,
+      type: 'keluar'
+    });
+  });
+  
+  // Sort by date (newest first)
+  transactions.sort((a, b) => b.tanggal - a.tanggal);
+  
+  // Calculate running balance
+  let saldo = 0;
+  let totalMasuk = 0;
+  let totalKeluar = 0;
+  
+  let html = '';
+  transactions.forEach(t => {
+    saldo += t.pemasukan - t.pengeluaran;
+    totalMasuk += t.pemasukan;
+    totalKeluar += t.pengeluaran;
+    
+    const rowClass = t.type === 'masuk' ? 'bg-green-50' : 'bg-red-50';
+    html += `
+      <tr class="${rowClass} border-b hover:bg-gray-100">
+        <td class="p-3">${formatDate(t.tanggal)}</td>
+        <td class="p-3">${t.jenis}</td>
+        <td class="p-3">${t.keterangan}</td>
+        <td class="p-3 text-right text-green-600 font-semibold">${t.pemasukan > 0 ? formatRupiah(t.pemasukan) : '-'}</td>
+        <td class="p-3 text-right text-red-600 font-semibold">${t.pengeluaran > 0 ? formatRupiah(t.pengeluaran) : '-'}</td>
+        <td class="p-3 text-right font-bold ${saldo >= 0 ? 'text-blue-600' : 'text-red-600'}">${formatRupiah(saldo)}</td>
+      </tr>
+    `;
+  });
+  
+  tableBody.innerHTML = html || '<tr><td colspan="6" class="p-4 text-center text-gray-500">Tidak ada transaksi</td></tr>';
+  
+  // Update summary
+  document.getElementById('totalMasuk').textContent = formatRupiah(totalMasuk);
+  document.getElementById('totalKeluar').textContent = formatRupiah(totalKeluar);
+  document.getElementById('saldo').textContent = formatRupiah(saldo);
+}
+
+function applyFilter(){
+  if(!rawData) return;
+  
+  const s = start.value ? new Date(start.value) : null;
+  const e = end.value ? new Date(end.value) : null;
+  const jenis = jenisFilter.value;
+  
+  const filtered = {
+    jual: rawData.jual.filter(row => {
+      const t = new Date(row[0]);
+      const dateMatch = (!s || t >= s) && (!e || t <= e);
+      const jenisMatch = !jenis || row[2] === jenis;
+      return dateMatch && jenisMatch;
+    }),
+    keluar: rawData.keluar.filter(row => {
+      const t = new Date(row[0]);
+      return (!s || t >= s) && (!e || t <= e);
+    })
+  };
+  
+  renderTable(filtered);
+}
+
+function resetFilter(){
+  start.value = '';
+  end.value = '';
+  jenisFilter.value = '';
+  if(rawData) renderTable(rawData);
+}
+
+function formatDate(date){
+  const d = new Date(date);
+  const day = String(d.getDate()).padStart(2, '0');
+  const month = String(d.getMonth() + 1).padStart(2, '0');
+  const year = d.getFullYear();
+  return `${day}/${month}/${year}`;
+}
+
+function formatRupiah(amount){
+  return 'Rp ' + amount.toLocaleString('id-ID');
+}
+</script>
+
+<style>
+@media print {
+  body { background: white; }
+  .no-print { display: none; }
+}
+</style>
+
+</body>
+</html>

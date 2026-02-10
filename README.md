@@ -4,9 +4,10 @@ Aplikasi web untuk mengelola data peternakan ayam dengan fitur:
 - Login authentication
 - Input telur masuk
 - Input hasil tetasan
-- Input penjualan
+- Input penjualan (dengan kalkulasi harga otomatis)
 - Input pengeluaran
 - Dashboard dengan grafik dan filter
+- Pembukuan keuangan lengkap
 
 ## Kredensial Login:
 
@@ -24,8 +25,9 @@ Password: `Malang2015`
 - `auth.js` - Script proteksi autentikasi
 - `index.html` - Halaman input telur masuk
 - `tetasan.html` - Halaman input hasil tetasan
-- `penjualan.html` - Halaman input penjualan
+- `penjualan.html` - Halaman input penjualan (dengan kalkulasi total otomatis)
 - `pengeluaran.html` - Halaman input pengeluaran
+- `pembukuan.html` - Halaman pembukuan keuangan lengkap
 - `dashboard.html` - Halaman dashboard dengan grafik
 - `navbar.html` - Navigasi menu dengan tombol logout
 - `google-apps-script.js` - Script untuk Google Apps Script
@@ -117,6 +119,19 @@ Jika tidak muncul JSON, berarti ada masalah di Google Apps Script.
 - Grafik keuangan (pemasukan vs pengeluaran)
 - Grafik laba
 - Card summary untuk semua data
+
+### Pembukuan
+- Tabel transaksi lengkap (pemasukan & pengeluaran)
+- Filter berdasarkan tanggal dan jenis ayam
+- Summary total pemasukan, pengeluaran, dan saldo
+- Saldo berjalan (running balance)
+- Tampilan responsif dengan color coding (hijau untuk pemasukan, merah untuk pengeluaran)
+- Sort otomatis berdasarkan tanggal terbaru
+
+### Penjualan
+- Input jumlah dan harga satuan
+- Kalkulasi total harga otomatis
+- Validasi input (jumlah minimal 1, harga minimal 0)
 
 ## Jenis Ayam:
 - Mardi ORI
