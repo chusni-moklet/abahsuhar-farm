@@ -61,61 +61,64 @@ const API = (() => {
 
   // ─── Initialize local storage with defaults ──────────────────
   const _initStorage = () => {
-    if (!localStorage.getItem(STORAGE_KEYS.produk)) {
-      localStorage.setItem(STORAGE_KEYS.produk, JSON.stringify(DEFAULT_PRODUK));
-    }
-    if (!localStorage.getItem(STORAGE_KEYS.pemasukan)) {
+    // Isi default jika kosong ATAU array kosong
+    const pm = _getLocal(STORAGE_KEYS.pemasukan);
+    const pe = _getLocal(STORAGE_KEYS.pengeluaran);
+    const pr = _getLocal(STORAGE_KEYS.produk);
+
+    if (!pm || pm.length === 0) {
       localStorage.setItem(STORAGE_KEYS.pemasukan, JSON.stringify(DEFAULT_PEMASUKAN));
     }
-    if (!localStorage.getItem(STORAGE_KEYS.pengeluaran)) {
+    if (!pe || pe.length === 0) {
       localStorage.setItem(STORAGE_KEYS.pengeluaran, JSON.stringify(DEFAULT_PENGELUARAN));
+    }
+    if (!pr || pr.length === 0) {
+      localStorage.setItem(STORAGE_KEYS.produk, JSON.stringify(DEFAULT_PRODUK));
     }
   };
 
   // ─── Generic API call - GAS compatible ───────────────────────
-  // GAS Web App tidak support CORS fetch biasa dari localhost/browser.
-  // Solusi: gunakan script tag injection (JSONP-style) untuk GET,
-  // dan no-cors fetch untuk write operations (fire-and-forget).
   const _call = async (action, method = 'GET', body = null) => {
     const apiUrl = window.APP_CONFIG?.API_URL;
     if (!apiUrl) return null;
 
     if (method === 'POST' && body) {
-      // WRITE: kirim via no-cors (tidak bisa baca response, tapi data masuk ke GAS)
+      // WRITE: fire-and-forget via no-cors GET
       try {
         const payload = encodeURIComponent(JSON.stringify(body));
-        const url = `${apiUrl}?action=${action}&payload=${payload}`;
-        // no-cors: browser tidak bisa baca response tapi request tetap dikirim
-        await fetch(url, { method: 'GET', mode: 'no-cors' });
-        return { success: true }; // Asumsikan berhasil
-      } catch (e) {
-        console.warn('Write API failed:', e.message);
-        return null;
-      }
+        fetch(`${apiUrl}?action=${action}&payload=${payload}`, { method: 'GET', mode: 'no-cors' });
+      } catch (e) { /* ignore */ }
+      return { success: true };
     } else {
-      // READ: gunakan JSONP via script tag agar bypass CORS
+      // READ: JSONP via script tag (bypass CORS), timeout 4s
       return new Promise((resolve) => {
-        const cbName = '_gasCb_' + Date.now();
+        const cbName = '_gasCb_' + Date.now() + '_' + Math.random().toString(36).substr(2,4);
         const script = document.createElement('script');
-        const timeout = setTimeout(() => {
+        let done = false;
+
+        const cleanup = () => {
+          if (done) return;
+          done = true;
           delete window[cbName];
-          script.remove();
-          console.warn('API timeout, using localStorage fallback');
+          if (script.parentNode) script.remove();
+        };
+
+        const timer = setTimeout(() => {
+          cleanup();
+          console.warn(`[API] Timeout ${action}, using localStorage`);
           resolve(null);
-        }, 8000);
+        }, 4000);
 
         window[cbName] = (data) => {
-          clearTimeout(timeout);
-          delete window[cbName];
-          script.remove();
+          clearTimeout(timer);
+          cleanup();
           resolve(data?.success ? data : null);
         };
 
         script.src = `${apiUrl}?action=${action}&callback=${cbName}`;
         script.onerror = () => {
-          clearTimeout(timeout);
-          delete window[cbName];
-          script.remove();
+          clearTimeout(timer);
+          cleanup();
           resolve(null);
         };
         document.head.appendChild(script);
@@ -138,11 +141,18 @@ const API = (() => {
   // ============================================================
   const getPemasukan = async (filters = {}) => {
     _initStorage();
-    const remote = await _call('getPemasukan');
-    let data = remote?.data || _getLocal(STORAGE_KEYS.pemasukan);
-    // Sync cache jika dapat data dari server
-    if (remote?.data) _setLocal(STORAGE_KEYS.pemasukan, remote.data);
 
+    // Tampilkan localStorage dulu (instant)
+    let data = _getLocal(STORAGE_KEYS.pemasukan);
+
+    // Coba ambil dari server di background (tidak block UI)
+    _call('getPemasukan').then(remote => {
+      if (remote?.data && remote.data.length > 0) {
+        _setLocal(STORAGE_KEYS.pemasukan, remote.data);
+      }
+    }).catch(() => {});
+
+    // Apply filters
     if (filters.bulan) data = data.filter(d => d.tanggal?.startsWith(`${filters.tahun || new Date().getFullYear()}-${String(filters.bulan).padStart(2,'0')}`));
     if (filters.tahun && !filters.bulan) data = data.filter(d => d.tanggal?.startsWith(String(filters.tahun)));
     if (filters.search) {
@@ -195,10 +205,13 @@ const API = (() => {
   // ============================================================
   const getPengeluaran = async (filters = {}) => {
     _initStorage();
-    const remote = await _call('getPengeluaran');
-    let data = remote?.data || _getLocal(STORAGE_KEYS.pengeluaran);
-    // Sync cache jika dapat data dari server
-    if (remote?.data) _setLocal(STORAGE_KEYS.pengeluaran, remote.data);
+    let data = _getLocal(STORAGE_KEYS.pengeluaran);
+
+    _call('getPengeluaran').then(remote => {
+      if (remote?.data && remote.data.length > 0) {
+        _setLocal(STORAGE_KEYS.pengeluaran, remote.data);
+      }
+    }).catch(() => {});
 
     if (filters.bulan) data = data.filter(d => d.tanggal?.startsWith(`${filters.tahun || new Date().getFullYear()}-${String(filters.bulan).padStart(2,'0')}`));
     if (filters.tahun && !filters.bulan) data = data.filter(d => d.tanggal?.startsWith(String(filters.tahun)));
@@ -251,13 +264,15 @@ const API = (() => {
   // ============================================================
   const getProduk = async () => {
     _initStorage();
-    const remote = await _call('getProduk');
-    if (remote?.data) {
-      // Sync localStorage dengan data terbaru dari server
-      _setLocal(STORAGE_KEYS.produk, remote.data);
-      return remote.data;
-    }
-    return _getLocal(STORAGE_KEYS.produk);
+    const data = _getLocal(STORAGE_KEYS.produk);
+
+    _call('getProduk').then(remote => {
+      if (remote?.data && remote.data.length > 0) {
+        _setLocal(STORAGE_KEYS.produk, remote.data);
+      }
+    }).catch(() => {});
+
+    return data;
   };
 
   const addProduk = async (item) => {
