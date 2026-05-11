@@ -103,93 +103,84 @@
       </div>
     </header>
 
-    <main class="p-6 space-y-4">
+    <main class="p-3 sm:p-6 space-y-3 sm:space-y-4">
       <!-- Summary Cards -->
-      <div class="grid grid-cols-3 gap-4">
-        <div class="stat-card p-4">
+      <div class="grid grid-cols-3 gap-2 sm:gap-4">
+        <div class="stat-card p-3 sm:p-4">
           <p class="text-gray-400 text-xs mb-1">Total Pemasukan</p>
-          <p class="text-green-400 font-bold text-lg" id="summaryTotal">Rp 0</p>
+          <p class="text-green-400 font-bold text-sm sm:text-lg leading-tight" id="summaryTotal">Rp 0</p>
         </div>
-        <div class="stat-card p-4">
-          <p class="text-gray-400 text-xs mb-1">Jumlah Transaksi</p>
-          <p class="text-white font-bold text-lg" id="summaryCount">0</p>
+        <div class="stat-card p-3 sm:p-4">
+          <p class="text-gray-400 text-xs mb-1">Transaksi</p>
+          <p class="text-white font-bold text-sm sm:text-lg" id="summaryCount">0</p>
         </div>
-        <div class="stat-card p-4">
+        <div class="stat-card p-3 sm:p-4">
           <p class="text-gray-400 text-xs mb-1">Rata-rata</p>
-          <p class="text-farm-400 font-bold text-lg" id="summaryAvg">Rp 0</p>
+          <p class="text-farm-400 font-bold text-sm sm:text-lg leading-tight" id="summaryAvg">Rp 0</p>
         </div>
       </div>
 
       <!-- Filters -->
-      <div class="chart-card">
-        <div class="flex flex-wrap gap-3 items-end">
-          <div class="flex-1 min-w-32">
+      <div class="chart-card p-3 sm:p-4">
+        <div class="space-y-2 sm:space-y-0 sm:flex sm:flex-wrap sm:gap-3 sm:items-end">
+          <!-- Search full width on mobile -->
+          <div class="w-full sm:flex-1 sm:min-w-32">
             <label class="text-gray-400 text-xs mb-1 block">Cari</label>
             <input type="text" id="searchInput" placeholder="Produk, pembeli..." class="form-input text-sm" />
           </div>
-          <div class="w-28">
-            <label class="text-gray-400 text-xs mb-1 block">Bulan</label>
-            <select id="filterBulan" class="form-input text-sm">
-              <option value="">Semua</option>
-              <option value="1">Jan</option><option value="2">Feb</option><option value="3">Mar</option>
-              <option value="4">Apr</option><option value="5">Mei</option><option value="6">Jun</option>
-              <option value="7">Jul</option><option value="8">Agu</option><option value="9">Sep</option>
-              <option value="10">Okt</option><option value="11">Nov</option><option value="12">Des</option>
-            </select>
+          <!-- Bulan + Tahun side by side on mobile -->
+          <div class="grid grid-cols-2 gap-2 sm:contents">
+            <div class="sm:w-28">
+              <label class="text-gray-400 text-xs mb-1 block">Bulan</label>
+              <select id="filterBulan" class="form-input text-sm">
+                <option value="">Semua</option>
+                <option value="1">Januari</option><option value="2">Februari</option><option value="3">Maret</option>
+                <option value="4">April</option><option value="5">Mei</option><option value="6">Juni</option>
+                <option value="7">Juli</option><option value="8">Agustus</option><option value="9">September</option>
+                <option value="10">Oktober</option><option value="11">November</option><option value="12">Desember</option>
+              </select>
+            </div>
+            <div class="sm:w-24">
+              <label class="text-gray-400 text-xs mb-1 block">Tahun</label>
+              <select id="filterTahun" class="form-input text-sm">
+                <option value="2026">2026</option><option value="2025">2025</option><option value="2024">2024</option>
+              </select>
+            </div>
           </div>
-          <div class="w-24">
-            <label class="text-gray-400 text-xs mb-1 block">Tahun</label>
-            <select id="filterTahun" class="form-input text-sm">
-              <option value="2026">2026</option><option value="2025">2025</option><option value="2024">2024</option>
-            </select>
+          <!-- Filter buttons -->
+          <div class="flex gap-2 sm:contents">
+            <button onclick="applyFilters()" class="btn-primary flex-1 sm:flex-none text-sm py-2 px-4">
+              <i class="fa-solid fa-filter mr-1"></i>Filter
+            </button>
+            <button onclick="resetFilters()" class="btn-secondary text-sm py-2 px-3">
+              <i class="fa-solid fa-rotate-left"></i>
+            </button>
           </div>
-          <button onclick="applyFilters()" class="btn-primary text-sm py-2 px-4">
-            <i class="fa-solid fa-filter mr-1"></i>Filter
-          </button>
-          <button onclick="resetFilters()" class="btn-secondary text-sm py-2 px-3">
-            <i class="fa-solid fa-rotate-left"></i>
-          </button>
         </div>
       </div>
 
-      <!-- Table -->
-      <div class="chart-card overflow-hidden">
-        <div class="overflow-x-auto">
-          <table class="data-table">
-            <thead>
-              <tr>
-                <th class="text-left cursor-pointer hover:text-white" onclick="sortData('tanggal')">Tanggal <i class="fa-solid fa-sort ml-1 text-xs"></i></th>
-                <th class="text-left cursor-pointer hover:text-white" onclick="sortData('produk')">Produk <i class="fa-solid fa-sort ml-1 text-xs"></i></th>
-                <th class="text-right">Qty</th>
-                <th class="text-right">Harga</th>
-                <th class="text-right cursor-pointer hover:text-white" onclick="sortData('total')">Total <i class="fa-solid fa-sort ml-1 text-xs"></i></th>
-                <th class="text-left">Pembeli</th>
-                <th class="text-center">Aksi</th>
-              </tr>
-            </thead>
-            <tbody id="tableBody">
-              <!-- Skeleton -->
-              <tr><td colspan="8"><div class="skeleton h-10 w-full m-2 rounded"></div></td></tr>
-            </tbody>
-          </table>
+      <!-- Data Container: cards on mobile, table on desktop -->
+      <div class="chart-card p-3 sm:p-0 sm:overflow-hidden">
+        <div id="dataContainer" class="space-y-2 sm:space-y-0">
+          <!-- Filled by JS -->
         </div>
-        <div class="px-4 py-3 border-t border-white/06" id="paginationContainer"></div>
+        <div class="px-3 sm:px-4 py-3 border-t border-white/06" id="paginationContainer"></div>
       </div>
     </main>
   </div>
 
   <!-- Modal Tambah/Edit -->
   <div id="modalOverlay" class="modal-overlay">
-    <div class="modal-box p-6">
-      <div class="flex items-center justify-between mb-6">
-        <h2 class="text-white font-bold text-lg" id="modalTitle">Tambah Pemasukan</h2>
-        <button onclick="closeModal()" class="text-gray-400 hover:text-white transition-colors">
-          <i class="fa-solid fa-xmark text-xl"></i>
+    <div class="modal-box p-5 sm:p-6 mx-2 sm:mx-0 w-full max-w-lg">
+      <div class="flex items-center justify-between mb-5">
+        <h2 class="text-white font-bold text-base sm:text-lg" id="modalTitle">Tambah Pemasukan</h2>
+        <button onclick="closeModal()" class="w-8 h-8 flex items-center justify-center rounded-lg bg-white/10 text-gray-400 hover:text-white transition-colors">
+          <i class="fa-solid fa-xmark"></i>
         </button>
       </div>
-      <form id="pemasukanForm" class="space-y-4">
+      <form id="pemasukanForm" class="space-y-3">
         <input type="hidden" id="editId" />
-        <div class="grid grid-cols-2 gap-4">
+        <div class="grid grid-cols-2 gap-3">
           <div>
             <label class="text-gray-300 text-xs font-medium mb-1.5 block">Tanggal <span class="text-red-400">*</span></label>
             <input type="date" id="fTanggal" class="form-input text-sm" required />
@@ -201,7 +192,7 @@
             </select>
           </div>
         </div>
-        <div class="grid grid-cols-2 gap-4">
+        <div class="grid grid-cols-2 gap-3">
           <div>
             <label class="text-gray-300 text-xs font-medium mb-1.5 block">Qty <span class="text-red-400">*</span></label>
             <input type="number" id="fQty" placeholder="0" min="1" class="form-input text-sm" required oninput="calcTotal()" />
@@ -211,22 +202,23 @@
             <input type="number" id="fHarga" placeholder="0" min="0" class="form-input text-sm" required oninput="calcTotal()" />
           </div>
         </div>
-        <div>
-          <label class="text-gray-300 text-xs font-medium mb-1.5 block">Pembeli</label>
-          <input type="text" id="fPembeli" placeholder="Nama pembeli" class="form-input text-sm" />
+        <!-- Total display -->
+        <div class="flex items-center justify-between px-4 py-3 rounded-xl bg-farm-900/60 border border-farm-700/30">
+          <span class="text-gray-400 text-xs">Total</span>
+          <span class="text-farm-400 font-bold text-base" id="fTotalDisplay">Rp 0</span>
         </div>
         <div>
-          <label class="text-gray-300 text-xs font-medium mb-1.5 block">Total</label>
-          <div class="form-input text-sm bg-farm-900/50 text-farm-400 font-bold" id="fTotalDisplay">Rp 0</div>
+          <label class="text-gray-300 text-xs font-medium mb-1.5 block">Pembeli</label>
+          <input type="text" id="fPembeli" placeholder="Nama pembeli (opsional)" class="form-input text-sm" />
         </div>
         <div>
           <label class="text-gray-300 text-xs font-medium mb-1.5 block">Catatan</label>
           <textarea id="fCatatan" rows="2" placeholder="Catatan tambahan..." class="form-input text-sm resize-none"></textarea>
         </div>
-        <div class="flex gap-3 pt-2">
-          <button type="button" onclick="closeModal()" class="btn-secondary flex-1 justify-center">Batal</button>
-          <button type="submit" class="btn-primary flex-1 justify-center">
-            <i class="fa-solid fa-save mr-1"></i>Simpan
+        <div class="flex gap-3 pt-1">
+          <button type="button" onclick="closeModal()" class="btn-secondary flex-1 justify-center py-3">Batal</button>
+          <button type="submit" class="btn-primary flex-1 justify-center py-3">
+            <i class="fa-solid fa-save mr-1.5"></i>Simpan
           </button>
         </div>
       </form>

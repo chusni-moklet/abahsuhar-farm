@@ -345,3 +345,44 @@ body { font-family: 'Inter', system-ui, -apple-system, sans-serif; }
 
 /* ─── Dark Mode Overrides ────────────────────────────────────── */
 .dark body { background: #030f06; }
+
+/* ─── Mobile Card View ───────────────────────────────────────── */
+@media (max-width: 767px) {
+  /* Sidebar full overlay on mobile */
+  .sidebar { width: 280px !important; }
+
+  /* Modal bottom sheet style on mobile */
+  .modal-overlay { align-items: flex-end; padding: 0; }
+  .modal-box {
+    border-radius: 1.5rem 1.5rem 0 0;
+    max-height: 92vh;
+    width: 100%;
+    max-width: 100%;
+    margin: 0;
+  }
+
+  /* Topbar compact */
+  .topbar { padding: 0.75rem 1rem; }
+
+  /* Touch-friendly tap targets */
+  .btn-edit, .btn-danger { padding: 0.5rem 0.75rem; font-size: 0.8rem; }
+
+  /* Card hover → active for touch */
+  .stat-card:active { transform: scale(0.98); }
+}
+
+/* ─── Mobile Card Item ───────────────────────────────────────── */
+#dataContainer > div {
+  transition: background 0.15s ease;
+}
+
+/* ─── Topbar mobile ──────────────────────────────────────────── */
+@media (max-width: 640px) {
+  .topbar h1 { font-size: 1rem; }
+  .topbar p { display: none; }
+}
+
+/* ─── Pagination mobile ──────────────────────────────────────── */
+@media (max-width: 480px) {
+  #paginationContainer .flex { flex-direction: column; gap: 0.5rem; align-items: center; }
+}
