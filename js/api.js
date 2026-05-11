@@ -59,22 +59,38 @@ const API = (() => {
     { id: 'pe12', tanggal: '2026-05-05', kategori: 'Gaji', nominal: 500000, deskripsi: 'Gaji pekerja Mei' }
   ];
 
-  // ─── Initialize local storage with defaults ──────────────────
-  const _initStorage = () => {
-    // Isi default jika kosong ATAU array kosong
-    const pm = _getLocal(STORAGE_KEYS.pemasukan);
-    const pe = _getLocal(STORAGE_KEYS.pengeluaran);
-    const pr = _getLocal(STORAGE_KEYS.produk);
+  // ─── LOCAL STORAGE HELPERS ────────────────────────────────────
+  // HARUS didefinisikan SEBELUM _initStorage dan fungsi lainnya
+  const _getLocal = (key) => {
+    try {
+      const val = localStorage.getItem(key);
+      if (!val) return [];
+      const parsed = JSON.parse(val);
+      return Array.isArray(parsed) ? parsed : [];
+    } catch { return []; }
+  };
+  const _setLocal = (key, data) => {
+    try { localStorage.setItem(key, JSON.stringify(data)); } catch(e) {}
+  };
 
-    if (!pm || pm.length === 0) {
-      localStorage.setItem(STORAGE_KEYS.pemasukan, JSON.stringify(DEFAULT_PEMASUKAN));
+  // ─── Initialize local storage with defaults ──────────────────
+  // Hanya isi default SEKALI saat pertama install (gunakan flag)
+  const _initStorage = () => {
+    const INIT_FLAG = 'farm_initialized_v2';
+    if (localStorage.getItem(INIT_FLAG)) return; // Sudah pernah diinit
+
+    // Hanya isi jika benar-benar belum ada data sama sekali
+    if (!localStorage.getItem(STORAGE_KEYS.pemasukan)) {
+      _setLocal(STORAGE_KEYS.pemasukan, DEFAULT_PEMASUKAN);
     }
-    if (!pe || pe.length === 0) {
-      localStorage.setItem(STORAGE_KEYS.pengeluaran, JSON.stringify(DEFAULT_PENGELUARAN));
+    if (!localStorage.getItem(STORAGE_KEYS.pengeluaran)) {
+      _setLocal(STORAGE_KEYS.pengeluaran, DEFAULT_PENGELUARAN);
     }
-    if (!pr || pr.length === 0) {
-      localStorage.setItem(STORAGE_KEYS.produk, JSON.stringify(DEFAULT_PRODUK));
+    if (!localStorage.getItem(STORAGE_KEYS.produk)) {
+      _setLocal(STORAGE_KEYS.produk, DEFAULT_PRODUK);
     }
+
+    localStorage.setItem(INIT_FLAG, '1'); // Tandai sudah diinit
   };
 
   // ─── Generic API call - GAS compatible ───────────────────────
@@ -128,13 +144,6 @@ const API = (() => {
 
   // ─── Generate unique ID ───────────────────────────────────────
   const _genId = (prefix = 'id') => `${prefix}_${Date.now()}_${Math.random().toString(36).substr(2, 6)}`;
-
-  // ─── LOCAL STORAGE HELPERS ────────────────────────────────────
-  const _getLocal = (key) => {
-    try { return JSON.parse(localStorage.getItem(key)) || []; }
-    catch { return []; }
-  };
-  const _setLocal = (key, data) => localStorage.setItem(key, JSON.stringify(data));
 
   // ============================================================
   // PEMASUKAN

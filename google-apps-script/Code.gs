@@ -276,6 +276,7 @@ function handleAddPengeluaran(item) {
   if (!item) return errorResponse('Data tidak valid');
   const sheet = _getSheet(SHEET_NAMES.PENGELUARAN);
   const id = String(item.id || _genId('pe'));
+  // Kolom: id, tanggal, kategori, nominal, deskripsi
   sheet.appendRow([id, String(item.tanggal || ''), String(item.kategori || ''), Number(item.nominal) || 0, String(item.deskripsi || '')]);
   return successResponse({ id }, 'Pengeluaran berhasil ditambahkan');
 }
@@ -285,6 +286,7 @@ function handleUpdatePengeluaran(id, item) {
   const sheet = _getSheet(SHEET_NAMES.PENGELUARAN);
   const rowIndex = _findRowById(sheet, id);
   if (rowIndex === -1) return errorResponse('Data tidak ditemukan: ' + id, 404);
+  // Kolom: id, tanggal, kategori, nominal, deskripsi
   sheet.getRange(rowIndex, 1, 1, 5).setValues([[String(id), String(item.tanggal || ''), String(item.kategori || ''), Number(item.nominal) || 0, String(item.deskripsi || '')]]);
   return successResponse({ id }, 'Pengeluaran berhasil diperbarui');
 }
@@ -404,7 +406,7 @@ function handleGetStatistik(params) {
 }
 
 // ============================================================
-// SETUP SPREADSHEET
+// SETUP & FIX SPREADSHEET
 // ============================================================
 function setupSpreadsheet() {
   const ss = SpreadsheetApp.getActiveSpreadsheet();
@@ -416,21 +418,11 @@ function setupSpreadsheet() {
     usersSheet.appendRow(['admin_1', 'abahsuhar@gmail.com', 'suharsaroh87', 'admin', 'Abah Suhar']);
   }
 
-  // PEMASUKAN sheet
+  // PEMASUKAN sheet — kolom tanpa sub_usaha
   _createOrGetSheet(ss, SHEET_NAMES.PEMASUKAN, ['id', 'tanggal', 'produk', 'qty', 'harga', 'total', 'pembeli', 'catatan']);
 
-  // PENGELUARAN sheet
+  // PENGELUARAN sheet — kolom tanpa sub_usaha
   _createOrGetSheet(ss, SHEET_NAMES.PENGELUARAN, ['id', 'tanggal', 'kategori', 'nominal', 'deskripsi']);
-
-  // SUB_USAHA sheet
-  _createOrGetSheet(ss, SHEET_NAMES.SUB_USAHA, ['id', 'nama_usaha', 'deskripsi']);
-  const suSheet = ss.getSheetByName(SHEET_NAMES.SUB_USAHA);
-  if (suSheet.getLastRow() <= 1) {
-    suSheet.appendRow(['su1', 'Farm Utama', 'Usaha pertanian utama']);
-    suSheet.appendRow(['su2', 'Kebun Lemon', 'Kebun jeruk lemon']);
-    suSheet.appendRow(['su3', 'Air Pegunungan', 'Produksi air pegunungan']);
-    suSheet.appendRow(['su4', 'Produksi Ketela', 'Produksi ketela pohon']);
-  }
 
   // PRODUK sheet
   _createOrGetSheet(ss, SHEET_NAMES.PRODUK, ['id', 'nama', 'satuan', 'harga_default']);
@@ -444,6 +436,43 @@ function setupSpreadsheet() {
   }
 
   SpreadsheetApp.getUi().alert('✅ Setup berhasil! Spreadsheet siap digunakan.');
+}
+
+// Jalankan ini jika sheet PENGELUARAN masih punya kolom sub_usaha lama
+function fixPengeluaranSheet() {
+  const ss = SpreadsheetApp.getActiveSpreadsheet();
+  const sheet = ss.getSheetByName(SHEET_NAMES.PENGELUARAN);
+  if (!sheet) { SpreadsheetApp.getUi().alert('Sheet PENGELUARAN tidak ditemukan'); return; }
+
+  const headers = sheet.getRange(1, 1, 1, sheet.getLastColumn()).getValues()[0];
+  const subUsahaIdx = headers.indexOf('sub_usaha');
+
+  if (subUsahaIdx === -1) {
+    SpreadsheetApp.getUi().alert('Sheet sudah benar, tidak ada kolom sub_usaha');
+    return;
+  }
+
+  // Hapus kolom sub_usaha
+  sheet.deleteColumn(subUsahaIdx + 1);
+  SpreadsheetApp.getUi().alert('✅ Kolom sub_usaha berhasil dihapus dari PENGELUARAN');
+}
+
+// Jalankan ini jika sheet PEMASUKAN masih punya kolom sub_usaha lama
+function fixPemasukanSheet() {
+  const ss = SpreadsheetApp.getActiveSpreadsheet();
+  const sheet = ss.getSheetByName(SHEET_NAMES.PEMASUKAN);
+  if (!sheet) { SpreadsheetApp.getUi().alert('Sheet PEMASUKAN tidak ditemukan'); return; }
+
+  const headers = sheet.getRange(1, 1, 1, sheet.getLastColumn()).getValues()[0];
+  const subUsahaIdx = headers.indexOf('sub_usaha');
+
+  if (subUsahaIdx === -1) {
+    SpreadsheetApp.getUi().alert('Sheet sudah benar, tidak ada kolom sub_usaha');
+    return;
+  }
+
+  sheet.deleteColumn(subUsahaIdx + 1);
+  SpreadsheetApp.getUi().alert('✅ Kolom sub_usaha berhasil dihapus dari PEMASUKAN');
 }
 
 // ============================================================

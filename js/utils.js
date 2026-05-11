@@ -178,7 +178,6 @@ const Utils = (() => {
         </div>
       </div>`;
   };
-  };
 
   // ─── Category Colors ──────────────────────────────────────────
   const getCategoryBadge = (kategori) => {

@@ -162,6 +162,17 @@ function renderTable() {
               </td>
             </tr>`).join('')}
         </tbody>
+        <tfoot>
+          <tr style="border-top:2px solid rgba(255,255,255,0.15)">
+            <td colspan="2" class="font-bold" style="color:#86efac;padding:0.75rem 1rem">
+              TOTAL (${filteredData.length} transaksi)
+            </td>
+            <td class="text-right font-bold text-lg" style="color:#f87171;padding:0.75rem 1rem">
+              ${Utils.formatRupiah(filteredData.reduce((s,d)=>s+Number(d.nominal||0),0))}
+            </td>
+            <td colspan="2"></td>
+          </tr>
+        </tfoot>
       </table>
     </div>`;
 
@@ -296,6 +307,9 @@ function exportExcelData() {
     'Tanggal': Utils.formatDate(d.tanggal), 'Kategori': d.kategori,
     'Nominal': d.nominal, 'Deskripsi': d.deskripsi || ''
   }));
+  // Tambah baris total
+  const grandTotal = filteredData.reduce((s, d) => s + Number(d.nominal || 0), 0);
+  rows.push({ 'Tanggal': '', 'Kategori': 'TOTAL', 'Nominal': grandTotal, 'Deskripsi': '' });
   Utils.exportExcel(rows, 'Pengeluaran_Farm', 'Pengeluaran');
 }
 
@@ -305,6 +319,9 @@ async function exportPDFData() {
     Utils.formatDateShort(d.tanggal), d.kategori,
     Utils.formatRupiah(d.nominal), d.deskripsi || '-'
   ]);
+  // Tambah baris total
+  const grandTotal = filteredData.reduce((s, d) => s + Number(d.nominal || 0), 0);
+  rows.push(['', { content: 'TOTAL', styles: { fontStyle: 'bold' } }, { content: Utils.formatRupiah(grandTotal), styles: { fontStyle: 'bold', textColor: [220, 38, 38] } }, '']);
   await Utils.exportPDF('Laporan Pengeluaran', headers, rows, 'Pengeluaran_Farm');
 }
 
