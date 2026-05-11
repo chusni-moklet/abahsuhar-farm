@@ -150,18 +150,22 @@ const API = (() => {
   // ============================================================
   const getPemasukan = async (filters = {}) => {
     _initStorage();
+    const apiUrl = window.APP_CONFIG?.API_URL;
+    let data;
 
-    // Tampilkan localStorage dulu (instant)
-    let data = _getLocal(STORAGE_KEYS.pemasukan);
-
-    // Coba ambil dari server di background (tidak block UI)
-    _call('getPemasukan').then(remote => {
-      if (remote?.data && remote.data.length > 0) {
+    if (apiUrl) {
+      // Tunggu server (source of truth)
+      const remote = await _call('getPemasukan');
+      if (remote?.data) {
         _setLocal(STORAGE_KEYS.pemasukan, remote.data);
+        data = remote.data;
+      } else {
+        data = _getLocal(STORAGE_KEYS.pemasukan);
       }
-    }).catch(() => {});
+    } else {
+      data = _getLocal(STORAGE_KEYS.pemasukan);
+    }
 
-    // Apply filters
     if (filters.bulan) data = data.filter(d => d.tanggal?.startsWith(`${filters.tahun || new Date().getFullYear()}-${String(filters.bulan).padStart(2,'0')}`));
     if (filters.tahun && !filters.bulan) data = data.filter(d => d.tanggal?.startsWith(String(filters.tahun)));
     if (filters.search) {
@@ -214,13 +218,20 @@ const API = (() => {
   // ============================================================
   const getPengeluaran = async (filters = {}) => {
     _initStorage();
-    let data = _getLocal(STORAGE_KEYS.pengeluaran);
+    const apiUrl = window.APP_CONFIG?.API_URL;
+    let data;
 
-    _call('getPengeluaran').then(remote => {
-      if (remote?.data && remote.data.length > 0) {
+    if (apiUrl) {
+      const remote = await _call('getPengeluaran');
+      if (remote?.data) {
         _setLocal(STORAGE_KEYS.pengeluaran, remote.data);
+        data = remote.data;
+      } else {
+        data = _getLocal(STORAGE_KEYS.pengeluaran);
       }
-    }).catch(() => {});
+    } else {
+      data = _getLocal(STORAGE_KEYS.pengeluaran);
+    }
 
     if (filters.bulan) data = data.filter(d => d.tanggal?.startsWith(`${filters.tahun || new Date().getFullYear()}-${String(filters.bulan).padStart(2,'0')}`));
     if (filters.tahun && !filters.bulan) data = data.filter(d => d.tanggal?.startsWith(String(filters.tahun)));
@@ -273,15 +284,19 @@ const API = (() => {
   // ============================================================
   const getProduk = async () => {
     _initStorage();
-    const data = _getLocal(STORAGE_KEYS.produk);
+    const apiUrl = window.APP_CONFIG?.API_URL;
 
-    _call('getProduk').then(remote => {
+    if (apiUrl) {
+      // Jika ada API, tunggu data dari server (source of truth)
+      const remote = await _call('getProduk');
       if (remote?.data && remote.data.length > 0) {
         _setLocal(STORAGE_KEYS.produk, remote.data);
+        return remote.data;
       }
-    }).catch(() => {});
+    }
 
-    return data;
+    // Fallback ke localStorage
+    return _getLocal(STORAGE_KEYS.produk);
   };
 
   const addProduk = async (item) => {
