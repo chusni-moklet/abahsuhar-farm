@@ -183,8 +183,9 @@ const API = (() => {
     _initStorage();
     const newItem = {
       id: _genId('pm'), tanggal: item.tanggal, produk: item.produk,
-      qty: Number(item.qty), harga: Number(item.harga),
-      total: Number(item.qty) * Number(item.harga),
+      qty: parseFloat(item.qty),
+      harga: Number(item.harga),
+      total: parseFloat(item.qty) * Number(item.harga),
       pembeli: item.pembeli || '', catatan: item.catatan || ''
     };
     const list = _getLocal(STORAGE_KEYS.pemasukan);
@@ -198,8 +199,9 @@ const API = (() => {
     _initStorage();
     const updated = {
       id: String(id), tanggal: item.tanggal, produk: item.produk,
-      qty: Number(item.qty), harga: Number(item.harga),
-      total: Number(item.qty) * Number(item.harga),
+      qty: parseFloat(item.qty),
+      harga: Number(item.harga),
+      total: parseFloat(item.qty) * Number(item.harga),
       pembeli: item.pembeli || '', catatan: item.catatan || ''
     };
     const list = _getLocal(STORAGE_KEYS.pemasukan);
@@ -212,10 +214,11 @@ const API = (() => {
   const deletePemasukan = async (id) => {
     _initStorage();
     const strId = String(id);
-    const result = await _call('deletePemasukan', 'POST', { action: 'deletePemasukan', id: strId });
-    if (result?.success === false) throw new Error('Gagal menghapus dari server');
+    // Hapus dari localStorage dulu (optimistic — tidak tunggu server)
     const list = _getLocal(STORAGE_KEYS.pemasukan).filter(d => String(d.id) !== strId);
     _setLocal(STORAGE_KEYS.pemasukan, list);
+    // Kirim ke server di background
+    _call('deletePemasukan', 'POST', { action: 'deletePemasukan', id: strId });
     return { success: true };
   };
 
@@ -280,10 +283,11 @@ const API = (() => {
   const deletePengeluaran = async (id) => {
     _initStorage();
     const strId = String(id);
-    const result = await _call('deletePengeluaran', 'POST', { action: 'deletePengeluaran', id: strId });
-    if (result?.success === false) throw new Error('Gagal menghapus dari server');
+    // Hapus dari localStorage dulu (optimistic)
     const list = _getLocal(STORAGE_KEYS.pengeluaran).filter(d => String(d.id) !== strId);
     _setLocal(STORAGE_KEYS.pengeluaran, list);
+    // Kirim ke server di background
+    _call('deletePengeluaran', 'POST', { action: 'deletePengeluaran', id: strId });
     return { success: true };
   };
 
@@ -344,14 +348,11 @@ const API = (() => {
   const deleteProduk = async (id) => {
     _initStorage();
     const strId = String(id);
-    // Kirim ke server dulu, tunggu konfirmasi
-    const result = await _call('deleteProduk', 'POST', { action: 'deleteProduk', id: strId });
-    if (result?.success === false) {
-      throw new Error('Gagal menghapus dari server');
-    }
-    // Hapus dari localStorage setelah server konfirmasi
+    // Hapus dari localStorage dulu (optimistic)
     const list = _getLocal(STORAGE_KEYS.produk).filter(d => String(d.id) !== strId);
     _setLocal(STORAGE_KEYS.produk, list);
+    // Kirim ke server di background
+    _call('deleteProduk', 'POST', { action: 'deleteProduk', id: strId });
     return { success: true };
   };
 

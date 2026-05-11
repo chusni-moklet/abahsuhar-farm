@@ -17,7 +17,13 @@ const Utils = (() => {
 
   // ─── Format Number ───────────────────────────────────────────
   const formatNumber = (num) => {
-    return new Intl.NumberFormat('id-ID').format(num);
+    const n = parseFloat(num);
+    if (isNaN(n)) return '0';
+    // Tampilkan desimal jika ada, max 2 digit
+    return new Intl.NumberFormat('id-ID', {
+      minimumFractionDigits: 0,
+      maximumFractionDigits: 2
+    }).format(n);
   };
 
   // ─── Format Date ─────────────────────────────────────────────

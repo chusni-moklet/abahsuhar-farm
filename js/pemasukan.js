@@ -292,7 +292,7 @@ function closeModal() {
 }
 
 function calcTotal() {
-  const qty = Number(document.getElementById('fQty')?.value || 0);
+  const qty = parseFloat(document.getElementById('fQty')?.value || 0);
   const harga = Number(document.getElementById('fHarga')?.value || 0);
   document.getElementById('fTotalDisplay').textContent = Utils.formatRupiah(qty * harga);
 }
@@ -322,7 +322,7 @@ document.getElementById('pemasukanForm')?.addEventListener('submit', async (e) =
   const data = {
     tanggal: document.getElementById('fTanggal').value,
     produk: Utils.sanitize(document.getElementById('fProduk').value),
-    qty: Number(document.getElementById('fQty').value),
+    qty: parseFloat(document.getElementById('fQty').value),
     harga: Number(document.getElementById('fHarga').value),
     pembeli: Utils.sanitize(document.getElementById('fPembeli').value),
     catatan: Utils.sanitize(document.getElementById('fCatatan').value)
