@@ -98,48 +98,52 @@ const API = (() => {
     const apiUrl = window.APP_CONFIG?.API_URL;
     if (!apiUrl) return null;
 
-    if (method === 'POST' && body) {
-      // WRITE: fire-and-forget via no-cors GET
-      try {
-        const payload = encodeURIComponent(JSON.stringify(body));
-        fetch(`${apiUrl}?action=${action}&payload=${payload}`, { method: 'GET', mode: 'no-cors' });
-      } catch (e) { /* ignore */ }
-      return { success: true };
-    } else {
-      // READ: JSONP via script tag (bypass CORS), timeout 4s
-      return new Promise((resolve) => {
-        const cbName = '_gasCb_' + Date.now() + '_' + Math.random().toString(36).substr(2,4);
-        const script = document.createElement('script');
-        let done = false;
+    // Semua request pakai JSONP (script tag) agar bypass CORS dan bisa dikonfirmasi
+    return new Promise((resolve) => {
+      const cbName = '_gasCb_' + Date.now() + '_' + Math.random().toString(36).slice(2, 6);
+      const script = document.createElement('script');
+      let done = false;
 
-        const cleanup = () => {
-          if (done) return;
-          done = true;
-          delete window[cbName];
-          if (script.parentNode) script.remove();
-        };
+      const cleanup = () => {
+        if (done) return;
+        done = true;
+        delete window[cbName];
+        if (script.parentNode) script.remove();
+      };
 
-        const timer = setTimeout(() => {
-          cleanup();
-          console.warn(`[API] Timeout ${action}, using localStorage`);
+      // Timeout: write 10s, read 6s
+      const timeoutMs = (method === 'POST') ? 10000 : 6000;
+      const timer = setTimeout(() => {
+        cleanup();
+        if (method === 'POST') {
+          console.warn(`[API] Write timeout ${action} - data mungkin sudah tersimpan`);
+          resolve({ success: true }); // Optimistic untuk write
+        } else {
+          console.warn(`[API] Read timeout ${action}, pakai localStorage`);
           resolve(null);
-        }, 4000);
+        }
+      }, timeoutMs);
 
-        window[cbName] = (data) => {
-          clearTimeout(timer);
-          cleanup();
-          resolve(data?.success ? data : null);
-        };
+      window[cbName] = (data) => {
+        clearTimeout(timer);
+        cleanup();
+        resolve(data?.success ? data : (method === 'POST' ? { success: false } : null));
+      };
 
-        script.src = `${apiUrl}?action=${action}&callback=${cbName}`;
-        script.onerror = () => {
-          clearTimeout(timer);
-          cleanup();
-          resolve(null);
-        };
-        document.head.appendChild(script);
-      });
-    }
+      // Build URL
+      let url = `${apiUrl}?callback=${cbName}&action=${action}`;
+      if (body) {
+        url += `&payload=${encodeURIComponent(JSON.stringify(body))}`;
+      }
+
+      script.src = url;
+      script.onerror = () => {
+        clearTimeout(timer);
+        cleanup();
+        resolve(method === 'POST' ? { success: false } : null);
+      };
+      document.head.appendChild(script);
+    });
   };
 
   // ─── Generate unique ID ───────────────────────────────────────
@@ -207,9 +211,11 @@ const API = (() => {
 
   const deletePemasukan = async (id) => {
     _initStorage();
-    const list = _getLocal(STORAGE_KEYS.pemasukan).filter(d => String(d.id) !== String(id));
+    const strId = String(id);
+    const result = await _call('deletePemasukan', 'POST', { action: 'deletePemasukan', id: strId });
+    if (result?.success === false) throw new Error('Gagal menghapus dari server');
+    const list = _getLocal(STORAGE_KEYS.pemasukan).filter(d => String(d.id) !== strId);
     _setLocal(STORAGE_KEYS.pemasukan, list);
-    _call('deletePemasukan', 'POST', { action: 'deletePemasukan', id: String(id) });
     return { success: true };
   };
 
@@ -273,9 +279,11 @@ const API = (() => {
 
   const deletePengeluaran = async (id) => {
     _initStorage();
-    const list = _getLocal(STORAGE_KEYS.pengeluaran).filter(d => String(d.id) !== String(id));
+    const strId = String(id);
+    const result = await _call('deletePengeluaran', 'POST', { action: 'deletePengeluaran', id: strId });
+    if (result?.success === false) throw new Error('Gagal menghapus dari server');
+    const list = _getLocal(STORAGE_KEYS.pengeluaran).filter(d => String(d.id) !== strId);
     _setLocal(STORAGE_KEYS.pengeluaran, list);
-    _call('deletePengeluaran', 'POST', { action: 'deletePengeluaran', id: String(id) });
     return { success: true };
   };
 
@@ -336,11 +344,14 @@ const API = (() => {
   const deleteProduk = async (id) => {
     _initStorage();
     const strId = String(id);
-    // Hapus dari localStorage dulu
+    // Kirim ke server dulu, tunggu konfirmasi
+    const result = await _call('deleteProduk', 'POST', { action: 'deleteProduk', id: strId });
+    if (result?.success === false) {
+      throw new Error('Gagal menghapus dari server');
+    }
+    // Hapus dari localStorage setelah server konfirmasi
     const list = _getLocal(STORAGE_KEYS.produk).filter(d => String(d.id) !== strId);
     _setLocal(STORAGE_KEYS.produk, list);
-    // Kirim ke server
-    _call('deleteProduk', 'POST', { action: 'deleteProduk', id: strId });
     return { success: true };
   };
 

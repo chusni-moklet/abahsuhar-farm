@@ -246,10 +246,8 @@ function handleUpdatePemasukan(id, item) {
 function handleDeletePemasukan(id) {
   if (!id) return errorResponse('ID tidak valid');
   const sheet = _getSheet(SHEET_NAMES.PEMASUKAN);
-  const rowIndex = _findRowById(sheet, id);
-  if (rowIndex === -1) return errorResponse('Data tidak ditemukan', 404);
-  sheet.deleteRow(rowIndex);
-  return successResponse(null, 'Pemasukan berhasil dihapus');
+  const deleted = _deleteAllRowsById(sheet, id);
+  return successResponse({ deleted: deleted }, 'Pemasukan berhasil dihapus');
 }
 
 // ============================================================
@@ -294,10 +292,8 @@ function handleUpdatePengeluaran(id, item) {
 function handleDeletePengeluaran(id) {
   if (!id) return errorResponse('ID tidak valid');
   const sheet = _getSheet(SHEET_NAMES.PENGELUARAN);
-  const rowIndex = _findRowById(sheet, id);
-  if (rowIndex === -1) return errorResponse('Data tidak ditemukan', 404);
-  sheet.deleteRow(rowIndex);
-  return successResponse(null, 'Pengeluaran berhasil dihapus');
+  const deleted = _deleteAllRowsById(sheet, id);
+  return successResponse({ deleted: deleted }, 'Pengeluaran berhasil dihapus');
 }
 
 // ============================================================
@@ -364,10 +360,9 @@ function handleUpdateProduk(id, item) {
 function handleDeleteProduk(id) {
   if (!id) return errorResponse('ID tidak valid');
   const sheet = _getSheet(SHEET_NAMES.PRODUK);
-  // Hapus semua baris dengan ID ini (termasuk duplikat)
   const deleted = _deleteAllRowsById(sheet, id);
-  if (deleted === 0) return errorResponse('Data tidak ditemukan (id: ' + id + ')', 404);
-  return successResponse(null, deleted + ' baris produk berhasil dihapus');
+  // Tetap success meski tidak ditemukan (mungkin sudah terhapus)
+  return successResponse({ deleted: deleted }, deleted > 0 ? 'Produk berhasil dihapus' : 'Data tidak ditemukan');
 }
 
 // ============================================================
