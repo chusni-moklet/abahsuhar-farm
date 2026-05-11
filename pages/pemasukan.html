@@ -1,0 +1,241 @@
+<!DOCTYPE html>
+<html lang="id" class="dark">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Pemasukan - Abah Suhar Farm Finance</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: { extend: { colors: { farm: { 50:'#f0fdf4',100:'#dcfce7',200:'#bbf7d0',300:'#86efac',400:'#4ade80',500:'#22c55e',600:'#16a34a',700:'#15803d',800:'#166534',900:'#14532d',950:'#052e16' } } } }
+    }
+  </script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />
+  <link rel="stylesheet" href="../assets/css/main.css" />
+  <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.8.2/jspdf.plugin.autotable.min.js"></script>
+  <style>body { background: #030f06; }</style>
+</head>
+<body class="min-h-screen text-white">
+
+  <!-- Sidebar (same structure) -->
+  <aside id="sidebar" class="sidebar fixed left-0 top-0 h-full w-64 z-40 transition-all duration-300 flex flex-col">
+    <div class="h-full flex flex-col overflow-hidden">
+      <div class="flex items-center gap-3 px-6 py-5 border-b border-white/10">
+        <div class="flex-shrink-0 w-10 h-10 rounded-xl bg-gradient-to-br from-farm-500 to-farm-700 flex items-center justify-center shadow-lg">
+          <i class="fa-solid fa-tractor text-white text-lg"></i>
+        </div>
+        <div class="sidebar-text overflow-hidden">
+          <h2 class="text-white font-bold text-sm">Abah Suhar</h2>
+          <p class="text-farm-400 text-xs">Farm Finance</p>
+        </div>
+        <button id="desktopSidebarToggle" class="ml-auto text-gray-400 hover:text-white hidden lg:block"><i class="fa-solid fa-bars"></i></button>
+        <button id="sidebarToggle" class="ml-auto text-gray-400 hover:text-white lg:hidden"><i class="fa-solid fa-xmark"></i></button>
+      </div>
+      <div class="px-4 py-3 border-b border-white/10">
+        <div class="flex items-center gap-3 p-2 rounded-xl bg-white/5">
+          <div class="w-8 h-8 rounded-lg bg-gradient-to-br from-farm-400 to-farm-600 flex items-center justify-center flex-shrink-0">
+            <i class="fa-solid fa-user text-white text-xs"></i>
+          </div>
+          <div class="sidebar-text overflow-hidden">
+            <p class="text-white text-xs font-medium truncate" id="sidebarUserName">Admin</p>
+            <p class="text-farm-400 text-xs truncate" id="sidebarUserEmail">abahsuhar@gmail.com</p>
+          </div>
+        </div>
+      </div>
+      <nav class="flex-1 overflow-y-auto px-3 py-4 space-y-1">
+        <p class="text-gray-500 text-xs font-semibold uppercase tracking-wider px-3 mb-2">Menu Utama</p>
+        <a href="../dashboard.html" class="nav-item flex items-center gap-3 px-3 py-2.5 rounded-xl text-gray-300 hover:text-white hover:bg-white/10 transition-all group" data-page="dashboard">
+          <i class="fa-solid fa-gauge-high w-5 text-center text-farm-400"></i><span class="sidebar-text text-sm">Dashboard</span>
+        </a>
+        <a href="pemasukan.html" class="nav-item active flex items-center gap-3 px-3 py-2.5 rounded-xl text-gray-300 hover:text-white hover:bg-white/10 transition-all group" data-page="pemasukan">
+          <i class="fa-solid fa-arrow-trend-up w-5 text-center text-green-400"></i><span class="sidebar-text text-sm">Pemasukan</span>
+        </a>
+        <a href="pengeluaran.html" class="nav-item flex items-center gap-3 px-3 py-2.5 rounded-xl text-gray-300 hover:text-white hover:bg-white/10 transition-all group" data-page="pengeluaran">
+          <i class="fa-solid fa-arrow-trend-down w-5 text-center text-red-400"></i><span class="sidebar-text text-sm">Pengeluaran</span>
+        </a>
+        <a href="laporan.html" class="nav-item flex items-center gap-3 px-3 py-2.5 rounded-xl text-gray-300 hover:text-white hover:bg-white/10 transition-all group" data-page="laporan">
+          <i class="fa-solid fa-file-chart-column w-5 text-center text-blue-400"></i><span class="sidebar-text text-sm">Laporan</span>
+        </a>
+        <p class="text-gray-500 text-xs font-semibold uppercase tracking-wider px-3 mb-2 mt-4">Manajemen</p>
+        <a href="produk.html" class="nav-item flex items-center gap-3 px-3 py-2.5 rounded-xl text-gray-300 hover:text-white hover:bg-white/10 transition-all group" data-page="produk">
+          <i class="fa-solid fa-boxes-stacked w-5 text-center text-purple-400"></i><span class="sidebar-text text-sm">Produk</span>
+        </a>
+      </nav>
+      <div class="px-3 py-4 border-t border-white/10 space-y-1">
+        <button id="darkModeToggle" class="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-gray-300 hover:text-white hover:bg-white/10 transition-all">
+          <i class="fa-solid fa-moon w-5 text-center text-indigo-400" id="darkModeIcon"></i>
+          <span class="sidebar-text text-sm" id="darkModeText">Mode Gelap</span>
+        </button>
+        <button id="logoutBtn" class="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-gray-300 hover:text-red-400 hover:bg-red-500/10 transition-all">
+          <i class="fa-solid fa-right-from-bracket w-5 text-center"></i>
+          <span class="sidebar-text text-sm">Keluar</span>
+        </button>
+      </div>
+    </div>
+  </aside>
+  <div id="sidebarOverlay" class="fixed inset-0 bg-black/60 z-30 hidden lg:hidden backdrop-blur-sm"></div>
+
+  <!-- Main -->
+  <div id="mainContent" class="main-content">
+    <!-- Topbar -->
+    <header class="topbar px-6 py-4 flex items-center justify-between">
+      <div class="flex items-center gap-4">
+        <button id="mobileSidebarToggle" class="lg:hidden text-gray-400 hover:text-white"><i class="fa-solid fa-bars text-lg"></i></button>
+        <div>
+          <h1 class="text-white font-bold text-lg">Pemasukan</h1>
+          <p class="text-farm-400 text-xs">Manajemen data pemasukan farm</p>
+        </div>
+      </div>
+      <div class="flex items-center gap-2">
+        <button onclick="exportExcelData()" class="btn-secondary text-xs py-1.5 px-3 no-print">
+          <i class="fa-solid fa-file-excel text-green-400"></i><span class="hidden sm:inline ml-1">Excel</span>
+        </button>
+        <button onclick="exportPDFData()" class="btn-secondary text-xs py-1.5 px-3 no-print">
+          <i class="fa-solid fa-file-pdf text-red-400"></i><span class="hidden sm:inline ml-1">PDF</span>
+        </button>
+        <button onclick="openModal()" class="btn-primary text-xs py-1.5 px-3">
+          <i class="fa-solid fa-plus"></i><span class="hidden sm:inline ml-1">Tambah</span>
+        </button>
+      </div>
+    </header>
+
+    <main class="p-6 space-y-4">
+      <!-- Summary Cards -->
+      <div class="grid grid-cols-3 gap-4">
+        <div class="stat-card p-4">
+          <p class="text-gray-400 text-xs mb-1">Total Pemasukan</p>
+          <p class="text-green-400 font-bold text-lg" id="summaryTotal">Rp 0</p>
+        </div>
+        <div class="stat-card p-4">
+          <p class="text-gray-400 text-xs mb-1">Jumlah Transaksi</p>
+          <p class="text-white font-bold text-lg" id="summaryCount">0</p>
+        </div>
+        <div class="stat-card p-4">
+          <p class="text-gray-400 text-xs mb-1">Rata-rata</p>
+          <p class="text-farm-400 font-bold text-lg" id="summaryAvg">Rp 0</p>
+        </div>
+      </div>
+
+      <!-- Filters -->
+      <div class="chart-card">
+        <div class="flex flex-wrap gap-3 items-end">
+          <div class="flex-1 min-w-32">
+            <label class="text-gray-400 text-xs mb-1 block">Cari</label>
+            <input type="text" id="searchInput" placeholder="Produk, pembeli..." class="form-input text-sm" />
+          </div>
+          <div class="w-28">
+            <label class="text-gray-400 text-xs mb-1 block">Bulan</label>
+            <select id="filterBulan" class="form-input text-sm">
+              <option value="">Semua</option>
+              <option value="1">Jan</option><option value="2">Feb</option><option value="3">Mar</option>
+              <option value="4">Apr</option><option value="5">Mei</option><option value="6">Jun</option>
+              <option value="7">Jul</option><option value="8">Agu</option><option value="9">Sep</option>
+              <option value="10">Okt</option><option value="11">Nov</option><option value="12">Des</option>
+            </select>
+          </div>
+          <div class="w-24">
+            <label class="text-gray-400 text-xs mb-1 block">Tahun</label>
+            <select id="filterTahun" class="form-input text-sm">
+              <option value="2026">2026</option><option value="2025">2025</option><option value="2024">2024</option>
+            </select>
+          </div>
+          <button onclick="applyFilters()" class="btn-primary text-sm py-2 px-4">
+            <i class="fa-solid fa-filter mr-1"></i>Filter
+          </button>
+          <button onclick="resetFilters()" class="btn-secondary text-sm py-2 px-3">
+            <i class="fa-solid fa-rotate-left"></i>
+          </button>
+        </div>
+      </div>
+
+      <!-- Table -->
+      <div class="chart-card overflow-hidden">
+        <div class="overflow-x-auto">
+          <table class="data-table">
+            <thead>
+              <tr>
+                <th class="text-left cursor-pointer hover:text-white" onclick="sortData('tanggal')">Tanggal <i class="fa-solid fa-sort ml-1 text-xs"></i></th>
+                <th class="text-left cursor-pointer hover:text-white" onclick="sortData('produk')">Produk <i class="fa-solid fa-sort ml-1 text-xs"></i></th>
+                <th class="text-right">Qty</th>
+                <th class="text-right">Harga</th>
+                <th class="text-right cursor-pointer hover:text-white" onclick="sortData('total')">Total <i class="fa-solid fa-sort ml-1 text-xs"></i></th>
+                <th class="text-left">Pembeli</th>
+                <th class="text-center">Aksi</th>
+              </tr>
+            </thead>
+            <tbody id="tableBody">
+              <!-- Skeleton -->
+              <tr><td colspan="8"><div class="skeleton h-10 w-full m-2 rounded"></div></td></tr>
+            </tbody>
+          </table>
+        </div>
+        <div class="px-4 py-3 border-t border-white/06" id="paginationContainer"></div>
+      </div>
+    </main>
+  </div>
+
+  <!-- Modal Tambah/Edit -->
+  <div id="modalOverlay" class="modal-overlay">
+    <div class="modal-box p-6">
+      <div class="flex items-center justify-between mb-6">
+        <h2 class="text-white font-bold text-lg" id="modalTitle">Tambah Pemasukan</h2>
+        <button onclick="closeModal()" class="text-gray-400 hover:text-white transition-colors">
+          <i class="fa-solid fa-xmark text-xl"></i>
+        </button>
+      </div>
+      <form id="pemasukanForm" class="space-y-4">
+        <input type="hidden" id="editId" />
+        <div class="grid grid-cols-2 gap-4">
+          <div>
+            <label class="text-gray-300 text-xs font-medium mb-1.5 block">Tanggal <span class="text-red-400">*</span></label>
+            <input type="date" id="fTanggal" class="form-input text-sm" required />
+          </div>
+          <div>
+            <label class="text-gray-300 text-xs font-medium mb-1.5 block">Produk <span class="text-red-400">*</span></label>
+            <select id="fProduk" class="form-input text-sm" required>
+              <option value="">Pilih produk</option>
+            </select>
+          </div>
+        </div>
+        <div class="grid grid-cols-2 gap-4">
+          <div>
+            <label class="text-gray-300 text-xs font-medium mb-1.5 block">Qty <span class="text-red-400">*</span></label>
+            <input type="number" id="fQty" placeholder="0" min="1" class="form-input text-sm" required oninput="calcTotal()" />
+          </div>
+          <div>
+            <label class="text-gray-300 text-xs font-medium mb-1.5 block">Harga Satuan <span class="text-red-400">*</span></label>
+            <input type="number" id="fHarga" placeholder="0" min="0" class="form-input text-sm" required oninput="calcTotal()" />
+          </div>
+        </div>
+        <div>
+          <label class="text-gray-300 text-xs font-medium mb-1.5 block">Pembeli</label>
+          <input type="text" id="fPembeli" placeholder="Nama pembeli" class="form-input text-sm" />
+        </div>
+        <div>
+          <label class="text-gray-300 text-xs font-medium mb-1.5 block">Total</label>
+          <div class="form-input text-sm bg-farm-900/50 text-farm-400 font-bold" id="fTotalDisplay">Rp 0</div>
+        </div>
+        <div>
+          <label class="text-gray-300 text-xs font-medium mb-1.5 block">Catatan</label>
+          <textarea id="fCatatan" rows="2" placeholder="Catatan tambahan..." class="form-input text-sm resize-none"></textarea>
+        </div>
+        <div class="flex gap-3 pt-2">
+          <button type="button" onclick="closeModal()" class="btn-secondary flex-1 justify-center">Batal</button>
+          <button type="submit" class="btn-primary flex-1 justify-center">
+            <i class="fa-solid fa-save mr-1"></i>Simpan
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <script src="../js/auth.js"></script>
+  <script src="../js/api.js"></script>
+  <script src="../js/utils.js"></script>
+  <script src="../js/pemasukan.js"></script>
+</body>
+</html>

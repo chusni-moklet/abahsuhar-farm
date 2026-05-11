@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Abah Suhar Farm Finance</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          colors: {
+            farm: {
+              50: '#f0fdf4', 100: '#dcfce7', 200: '#bbf7d0',
+              300: '#86efac', 400: '#4ade80', 500: '#22c55e',
+              600: '#16a34a', 700: '#15803d', 800: '#166534',
+              900: '#14532d', 950: '#052e16'
+            }
+          }
+        }
+      }
+    }
+  </script>
+  <script>
+    // Redirect logic
+    window.addEventListener('DOMContentLoaded', function() {
+      const session = localStorage.getItem('farm_session');
+      if (session) {
+        window.location.href = 'dashboard.html';
+      } else {
+        window.location.href = 'login.html';
+      }
+    });
+  </script>
+</head>
+<body class="bg-farm-950 flex items-center justify-center min-h-screen">
+  <div class="text-white text-center">
+    <div class="animate-spin rounded-full h-12 w-12 border-b-2 border-farm-400 mx-auto mb-4"></div>
+    <p class="text-farm-300">Memuat sistem...</p>
+  </div>
+</body>
+</html>
