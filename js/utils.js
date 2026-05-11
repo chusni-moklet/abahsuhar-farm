@@ -151,20 +151,23 @@ const Utils = (() => {
     const start = (page - 1) * perPage + 1;
     const end = Math.min(page * perPage, total);
 
+    // Build page buttons — show max 5 around current page
     let btns = '';
     const range = 2;
     for (let i = 1; i <= totalPages; i++) {
       if (i === 1 || i === totalPages || (i >= page - range && i <= page + range)) {
         btns += `<button class="page-btn ${i === page ? 'active' : ''}" onclick="(${onPageChange})(${i})">${i}</button>`;
       } else if (i === page - range - 1 || i === page + range + 1) {
-        btns += `<span class="text-gray-500 px-1">...</span>`;
+        btns += `<span class="text-gray-500 px-0.5 text-sm">…</span>`;
       }
     }
 
     el.innerHTML = `
-      <div class="flex items-center justify-between flex-wrap gap-3">
-        <p class="text-gray-400 text-xs">Menampilkan ${start}–${end} dari ${total} data</p>
-        <div class="flex items-center gap-1">
+      <div style="display:flex;flex-direction:row;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:0.5rem;">
+        <p class="text-gray-400 text-xs whitespace-nowrap">
+          ${start}–${end} dari ${total} data
+        </p>
+        <div style="display:flex;flex-direction:row;align-items:center;gap:0.25rem;flex-wrap:wrap;">
           <button class="page-btn" onclick="(${onPageChange})(${page - 1})" ${page <= 1 ? 'disabled' : ''}>
             <i class="fa-solid fa-chevron-left text-xs"></i>
           </button>
@@ -174,6 +177,7 @@ const Utils = (() => {
           </button>
         </div>
       </div>`;
+  };
   };
 
   // ─── Category Colors ──────────────────────────────────────────
